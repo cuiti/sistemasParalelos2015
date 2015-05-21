@@ -35,7 +35,7 @@ double dwalltime(){
 }
 
 int main(int argc,char*argv[]) {
- double *A,*B,*C,*D,*r1,*r2;
+ double *A,*B,*C,*D,*r1,*r2, *aux;
  int i,j,k;
  double timetick;
  int check=1;
@@ -44,7 +44,8 @@ int main(int argc,char*argv[]) {
  A=(double*)malloc(sizeof(double)*N*N);
  B=(double*)malloc(sizeof(double)*N*N);
  C=(double*)malloc(sizeof(double)*N*N);
- D=(double*)malloc(sizeof(double)*N);
+ B2=(double*)malloc(sizeof(double)*N*N);
+ D=(double*)malloc(sizeof(double)*N*N);
  r1=(double*)malloc(sizeof(double)*2);
  r2=(double*)malloc(sizeof(double)*2);
 
@@ -64,16 +65,25 @@ int main(int argc,char*argv[]) {
 
   for(i=0;i<N;i++){
    for(j=0;j<N;j++){
-    C[i*N+j]=0;
+    B2[i*N+j]=0;
     for(k=0;k<N;k++){
-	C[i*N+j]=(C[i*N+j] + A[i*N+k]*B[k+j*N]);
+	B2[i*N+j]=(B2[i*N+j] + A[i*N+k]*B[k+j*N]);
     }
    }
   }   
 
-////////////////MULTIOPLICAR X LA MATRIZ DIAGONAL Y GUARDARLO EN C////////////////////////////////////
+  for(i=0;i<N;i++){
+   for(j=0;j<N;j++){
+    C[i*N+j]=0;
+    for(k=0;k<N;k++){
+	 C[i*N+j]=(C[i*N+j] + B2[i*N+k]*C[k+j*N]);
+    }
+   }
+  }
 
- //Verifica el resultado
+  free(B2); 
+
+ //Verifica el resultado A DESPUES BORRAR!!!!!!!!!!!!
   for(i=0;i<N;i++){
    for(j=0;j<N;j++){
 	check=check&&(C[i*N+j])==N;
@@ -98,10 +108,26 @@ int main(int argc,char*argv[]) {
   C[l]=C[l]*result;
  }
 
+ //VERIFICAR B
+
  free(r1);
  free(r2);
 
-/////////////////Y ACA SE ORDENA////////////////////////////
+ aux=(double*)malloc(sizeof(double)*N);
+ for(i=0;i<N;i++) {
+  for(j=1;j<=N;j++) {
+   for(k=0;k<N-j;k++) {
+    if(C[i*N+k]>C[(i+1)*N+k]) {
+     for(l=0;l<N;l++) {
+      aux[l]=C[(i+l)*N+k+l]
+     }
+    }
+   }
+  }
+ }
+ free(aux);
+
+ //VERIFICAR C
 
  printf("Tiempo en segundos %f\n", dwalltime() - timetick);
 
