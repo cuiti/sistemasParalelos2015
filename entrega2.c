@@ -45,7 +45,7 @@ int main(int argc,char*argv[]) {
  B=(double*)malloc(sizeof(double)*N*N);
  C=(double*)malloc(sizeof(double)*N*N);
  B2=(double*)malloc(sizeof(double)*N*N);
- D=(double*)malloc(sizeof(double)*N*N);
+ D=(double*)malloc(sizeof(double)*N);
  r1=(double*)malloc(sizeof(double)*2);
  r2=(double*)malloc(sizeof(double)*2);
 
@@ -59,7 +59,7 @@ int main(int argc,char*argv[]) {
   }   
 
 
- //Realiza la multiplicacion
+ //Punto A
 
   timetick = dwalltime();
 
@@ -75,15 +75,13 @@ int main(int argc,char*argv[]) {
   for(i=0;i<N;i++){
    for(j=0;j<N;j++){
     C[i*N+j]=0;
-    for(k=0;k<N;k++){
-	 C[i*N+j]=(C[i*N+j] + B2[i*N+k]*C[k+j*N]);
-    }
+ 	C[i*N+j]=(C[i*N+j] + B2[i*N+(N*j)]*D[N*j]);
    }
   }
 
   free(B2); 
 
- //Verifica el resultado A DESPUES BORRAR!!!!!!!!!!!!
+ //VERIFICAR A
   for(i=0;i<N;i++){
    for(j=0;j<N;j++){
 	check=check&&(C[i*N+j])==N;
@@ -113,13 +111,18 @@ int main(int argc,char*argv[]) {
  free(r1);
  free(r2);
 
+ //Punto C
+
  aux=(double*)malloc(sizeof(double)*N);
  for(i=0;i<N;i++) {
   for(j=1;j<=N;j++) {
    for(k=0;k<N-j;k++) {
-    if(C[i*N+k]>C[(i+1)*N+k]) {
-     for(l=0;l<N;l++) {
-      aux[l]=C[(i+l)*N+k+l]
+    if(C[i+N*k]>C[i+N*(k+1)]) {
+     for(l=i;l<N;l++) {
+      aux[l]=C[(i+l)*N+k]
+     }
+     for(l=i;l<N;l++) {
+      C[(i+l)*N+k]=C[(i+1)
      }
     }
    }
