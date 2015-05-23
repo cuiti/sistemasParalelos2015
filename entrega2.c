@@ -35,7 +35,7 @@ double dwalltime(){
 }
 
 int main(int argc,char*argv[]) {
- double *A,*B,*C,*D,*r1,*r2, *aux;
+ double *A,*B,*B2,*C,*D,*r1,*r2, *aux;
  int i,j,k;
  double timetick;
  int check=1;
@@ -115,18 +115,23 @@ int main(int argc,char*argv[]) {
 
  aux=(double*)malloc(sizeof(double)*N);
  for(i=0;i<N;i++) {
+
   for(j=1;j<=N;j++) {
    for(k=0;k<N-j;k++) {
     if(C[i+N*k]>C[i+N*(k+1)]) {
      for(l=i;l<N;l++) {
-      aux[l]=C[(i+l)*N+k]
+      aux[l]=C[(i+l)*N+k];
      }
      for(l=i;l<N;l++) {
-      C[(i+l)*N+k]=C[(i+1)
+      C[(i+l)*N+k]=C[(i+l)*N+k+1];
+     }
+     for(l=i;l<N;l++) {
+      C[(i+l)*N+k+1]=aux[l];
      }
     }
    }
   }
+
  }
  free(aux);
 
