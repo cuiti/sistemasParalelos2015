@@ -12,7 +12,7 @@ void getValues(double *matriz, double *resultados) {
  double max=-999999;
  double total=0;
 
- for(i;i<N;i++) {
+ for(i;i<(N*N);i++) {
   if(matriz[i]>max) {
    max=matriz[i];
   }
@@ -22,7 +22,7 @@ void getValues(double *matriz, double *resultados) {
   total+=matriz[i];
  }
  resultados[0]=max-min;
- resultados[1]=total/N;
+ resultados[1]=total/(N*N);
 }
 
 //Para calcular tiempo
@@ -57,11 +57,11 @@ int main(int argc,char*argv[]) {
     r1=(double*)malloc(sizeof(double)*2);
     r2=(double*)malloc(sizeof(double)*2);
 
-    //A=(double*)malloc(sizeof(double)*9);
-    //B=(double*)malloc(sizeof(double)*9);
-    //C=(double*)malloc(sizeof(double)*9);
-    //B2=(double*)malloc(sizeof(double)*9);
-    //D=(double*)malloc(sizeof(double)*3);
+//    A=(double*)malloc(sizeof(double)*9);
+//    B=(double*)malloc(sizeof(double)*9);
+//    C=(double*)malloc(sizeof(double)*9);
+//    B2=(double*)malloc(sizeof(double)*9);
+//    D=(double*)malloc(sizeof(double)*3);
 	
 	//Inicializa las matrices A y B en 1, el resultado sera una matriz con todos sus valores en N
 	  for(i=0;i<N;i++){
@@ -94,7 +94,7 @@ int main(int argc,char*argv[]) {
 //	B[7]=3;
 //	B[8]=2;
 
-//        D[0]=4;
+//	D[0]=4;
 //	D[1]=2;
 //	D[2]=3;
 	
