@@ -125,13 +125,7 @@ int main(int argc,char*argv[]) {
 
   free(B2); 
 
- //VERIFICA PUNTO A
-			//  for(i=0;i<N;i++){
-			//   for(j=0;j<N;j++){
-			//	check=check&&(C[i*N+j])==N;
-			//   }
-			//  }   
-			
+ //VERIFICA PUNTO A 	
 			
 //	check=check&&(C[0])==60;
 //	check=check&&(C[1])==108;
@@ -142,7 +136,7 @@ int main(int argc,char*argv[]) {
 //	check=check&&(C[6])==172;
 //	check=check&&(C[7])==194;
 //	check=check&&(C[8])==126;
-    printf("\n");
+
 	printf("Matriz A.B.C resultante del punto 1:\n");
 	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
 	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
@@ -197,17 +191,17 @@ int main(int argc,char*argv[]) {
  aux=(double*)malloc(sizeof(double)*N);
  for(i=0;i<N;i++) {
 
-  for(j=1;j<=N;j++) {
+  for(j=1;j<N;j++) {
    for(k=0;k<N-j;k++) {
-    if(C[i+N*k]>C[i+N*(k+1)]) {
-     for(l=i;l<N;l++) {
-      aux[l]=C[(i+l)*N+k];
+    if(C[i+N*k]<C[i+N*(k+1)]) {
+     for(l=0;l<N-i;l++) {
+      aux[l]=C[i+l+N*k];
      }
-     for(l=i;l<N;l++) {
-      C[(i+l)*N+k]=C[(i+l)*N+k+1];
+     for(l=0;l<N-i;l++) {
+      C[i+l+N*k]=C[i+l+N*(k+1)];
      }
-     for(l=i;l<N;l++) {
-      C[(i+l)*N+k+1]=aux[l];
+     for(l=0;l<N-i;l++) {
+      C[i+l+N*(k+1)]=aux[l];
      }
     }
    }
