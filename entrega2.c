@@ -41,58 +41,62 @@ int main(int argc,char*argv[]) {
  double timetick;
  int check=1;
 
+ if ((argc != 2) || ((N = atoi(argv[1])) <= 0) )
+  {
+    printf("\nUsar: %s n\n  n: Dimension de la matriz (nxn X nxn)\n", argv[0]);
+    exit(1);
+  }
+
       //Aloca memoria para las matrices
 	
-    //A=(double*)malloc(sizeof(double)*N*N);
-    //B=(double*)malloc(sizeof(double)*N*N);
-    //C=(double*)malloc(sizeof(double)*N*N);
-    //B2=(double*)malloc(sizeof(double)*N*N);		//<--- Alocación original, la dejo comentada por si acaso
-    //D=(double*)malloc(sizeof(double)*N);
-    //r1=(double*)malloc(sizeof(double)*2);
-    //r2=(double*)malloc(sizeof(double)*2);
-
-    A=(double*)malloc(sizeof(double)*9);
-    B=(double*)malloc(sizeof(double)*9);
-    C=(double*)malloc(sizeof(double)*9);
-    B2=(double*)malloc(sizeof(double)*9);
-    D=(double*)malloc(sizeof(double)*3);
+    A=(double*)malloc(sizeof(double)*N*N);
+    B=(double*)malloc(sizeof(double)*N*N);
+    C=(double*)malloc(sizeof(double)*N*N);
+    B2=(double*)malloc(sizeof(double)*N*N);
+    D=(double*)malloc(sizeof(double)*N);
     r1=(double*)malloc(sizeof(double)*2);
     r2=(double*)malloc(sizeof(double)*2);
+
+    //A=(double*)malloc(sizeof(double)*9);
+    //B=(double*)malloc(sizeof(double)*9);
+    //C=(double*)malloc(sizeof(double)*9);
+    //B2=(double*)malloc(sizeof(double)*9);
+    //D=(double*)malloc(sizeof(double)*3);
 	
-	 //Inicializa las matrices A y B en 1, el resultado sera una matriz con todos sus valores en N
-//	  for(i=0;i<N;i++){
-//	   for(j=0;j<N;j++){
-//		A[i*N+j]=1;
-//		B[i+j*N]=1;
-//	   }
-//	   D[i]=1;
-//	  }   
+	//Inicializa las matrices A y B en 1, el resultado sera una matriz con todos sus valores en N
+	  for(i=0;i<N;i++){
+	   for(j=0;j<N;j++){
+		A[i*N+j]=1;
+		B[i+j*N]=1;
+	   }
+	   D[i]=1;
+	  }   
 
 
 //Inicializa matrices con los valores de prueba
-	A[0]=1;
-	A[1]=2;
-	A[2]=6;
-	A[3]=5;
-	A[4]=9;
-	A[5]=3;
-	A[6]=4;
-	A[7]=8;
-	A[8]=7;
+//	A[0]=1;
+//	A[1]=2;
+//	A[2]=6;
+//	A[3]=5;
+//	A[4]=9;
+//	A[5]=3;
+//	A[6]=4;
+//	A[7]=8;
+//	A[8]=7;
 	
-	B[0]=3;
-	B[1]=3;
-	B[2]=1;
-	B[3]=2;
-	B[4]=5;
-	B[5]=7;
-	B[6]=1;
-	B[7]=3;
-	B[8]=2;
+//	B[0]=3;
+//	B[1]=3;
+//	B[2]=1;
+//	B[3]=2;
+//	B[4]=5;
+//	B[5]=7;
+//	B[6]=1;
+//	B[7]=3;
+//	B[8]=2;
 
-        D[0]=4;
-	D[1]=2;
-	D[2]=3;
+//        D[0]=4;
+//	D[1]=2;
+//	D[2]=3;
 	
 	
  //Punto A
@@ -128,10 +132,10 @@ int main(int argc,char*argv[]) {
 //	check=check&&(C[7])==194;
 //	check=check&&(C[8])==126;
 
-	printf("Matriz A.B.C resultante del punto 1:\n");
-	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
-	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
-	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
+//	printf("Matriz A.B.C resultante del punto 1:\n");
+//	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
+//	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
+//	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
 	
 //  if(check){
 //   printf("Multiplicacion de matrices A.B.C resultado correcto\n");
@@ -167,11 +171,11 @@ int main(int argc,char*argv[]) {
 //    }else{
 //     printf("Etapa 2 resultado erroneo\n");
 //    }
- 	printf("\n");
- 	printf("Matriz resultante del punto 2:\n");
-	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
-	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
-	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
+// 	printf("\n");
+// 	printf("Matriz resultante del punto 2:\n");
+//	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
+//	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
+//	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
  
  
  free(r1);
@@ -219,11 +223,11 @@ int main(int argc,char*argv[]) {
      //printf("Etapa 3 resultado erroneo\n");
     //}
 
- 	printf("\n");
- 	printf("Matriz resultante del punto 3:\n");
-	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
-	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
-	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);	
+// 	printf("\n");
+// 	printf("Matriz resultante del punto 3:\n");
+//	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
+//	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
+//	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);	
 	
  printf("Tiempo en segundos %f\n", dwalltime() - timetick);
 
