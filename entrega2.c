@@ -55,7 +55,7 @@ int main(int argc,char*argv[]) {
     B=(double*)malloc(sizeof(double)*9);
     C=(double*)malloc(sizeof(double)*9);
     B2=(double*)malloc(sizeof(double)*9);
-    D=(double*)malloc(sizeof(double)*9);
+    D=(double*)malloc(sizeof(double)*3);
     r1=(double*)malloc(sizeof(double)*2);
     r2=(double*)malloc(sizeof(double)*2);
 	
@@ -91,14 +91,8 @@ int main(int argc,char*argv[]) {
 	B[8]=2;
 
         D[0]=4;
-	D[1]=0;
-	D[2]=0;
-	D[3]=0;
-	D[4]=2;
-	D[5]=0;
-	D[6]=0;
-	D[7]=0;
-	D[8]=3;
+	D[1]=2;
+	D[2]=3;
 	
 	
  //Punto A
@@ -116,10 +110,7 @@ int main(int argc,char*argv[]) {
 
   for(i=0;i<N;i++){
    for(j=0;j<N;j++){
-    C[i*N+j]=0;
-    for(k=0;k<N;k++){
-     C[i*N+j]=(C[i*N+j] + B2[i*N+k]*D[k+j*N]);
-    }
+    C[i*N+j]=(B2[i*N+j]*D[j]);
    }
   }
 
@@ -142,7 +133,7 @@ int main(int argc,char*argv[]) {
 	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
 	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
 	
- // if(check){
+//  if(check){
 //   printf("Multiplicacion de matrices A.B.C resultado correcto\n");
 //  }else{
 //   printf("Multiplicacion de matrices A.B.C resultado erroneo\n");
