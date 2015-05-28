@@ -55,7 +55,7 @@ int main(int argc,char*argv[]) {
     B=(double*)malloc(sizeof(double)*9);
     C=(double*)malloc(sizeof(double)*9);
     B2=(double*)malloc(sizeof(double)*9);
-    D=(double*)malloc(sizeof(double)*3);
+    D=(double*)malloc(sizeof(double)*9);
     r1=(double*)malloc(sizeof(double)*2);
     r2=(double*)malloc(sizeof(double)*2);
 	
@@ -89,10 +89,16 @@ int main(int argc,char*argv[]) {
 	B[6]=1;
 	B[7]=3;
 	B[8]=2;
-	
-	D[0]=4;
-	D[1]=2;
-	D[2]=3;
+
+        D[0]=4;
+	D[1]=0;
+	D[2]=0;
+	D[3]=0;
+	D[4]=2;
+	D[5]=0;
+	D[6]=0;
+	D[7]=0;
+	D[8]=3;
 	
 	
  //Punto A
@@ -103,7 +109,7 @@ int main(int argc,char*argv[]) {
    for(j=0;j<N;j++){
     B2[i*N+j]=0;
     for(k=0;k<N;k++){
-	B2[i*N+j]=(B2[i*N+j] + A[i*N+k]*B[k+j*N]);
+     B2[i*N+j]=(B2[i*N+j] + A[i*N+k]*B[k+j*N]);
     }
    }
   }   
@@ -111,7 +117,9 @@ int main(int argc,char*argv[]) {
   for(i=0;i<N;i++){
    for(j=0;j<N;j++){
     C[i*N+j]=0;
- 	C[i*N+j]=(C[i*N+j] + B2[i*N+(N*j)]*D[N*j]);
+    for(k=0;k<N;k++){
+     C[i*N+j]=(C[i*N+j] + B2[i*N+k]*D[k+j*N]);
+    }
    }
   }
 
@@ -126,13 +134,13 @@ int main(int argc,char*argv[]) {
 			
 			
 //	check=check&&(C[0])==60;
-//	check=check&&(C[1])==270;
+//	check=check&&(C[1])==108;
 //	check=check&&(C[2])==57;
 //	check=check&&(C[3])==180;
-//	check=check&&(C[4])==380;
+//	check=check&&(C[4])==152;
 //	check=check&&(C[5])==114;
 //	check=check&&(C[6])==172;
-//	check=check&&(C[7])==485;
+//	check=check&&(C[7])==194;
 //	check=check&&(C[8])==126;
     printf("\n");
 	printf("Matriz A.B.C resultante del punto 1:\n");
