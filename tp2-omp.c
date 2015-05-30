@@ -6,24 +6,31 @@
 	// int N=100;  <-- para testear, la cambiamos por 3
 int N=3;
 
-//Este metodo devuelve el max-min en result[0] y el promedio en result[1]
+//Este metodo devuelve el max-min en result[0] y el promedio en result[1]  				
 void getValues(double *matriz, double *resultados) {
- int i=0;
- double min=999999;
- double max=-999999;
- double total=0;
+	 int i=0;
+	 double min=999999;
+	 double max=-999999;
+	 double total=0;
 
- for(i;i<(N*N);i++) {
-  if(matriz[i]>max) {
-   max=matriz[i];
-  }
-  if(matriz[i]<min) {
-   min=matriz[i];
-  }
-  total+=matriz[i];
- }
- resultados[0]=max-min;
- resultados[1]=total/(N*N);
+
+
+	#pragma omp parallel for shared (matriz,N,max,min) reduction(+:total)
+	 for(i=0;i<(N*N);i++) {
+	  if(matriz[i]>max) {
+	   max=matriz[i];
+	  }
+	  if(matriz[i]<min) {
+	   min=matriz[i];
+	  }
+	  total+=matriz[i];
+	 }
+
+	 resultados[0]=max-min;
+	 resultados[1]=total/(N*N);
+
+
+
 }
 
 //Para calcular tiempo
@@ -159,9 +166,11 @@ int main(int argc,char*argv[]) {
  getValues(A,r1);
  getValues(B,r2);
  result=((r1[0]*r1[0])/r1[1])*((r2[0]*r2[0])/r2[1]);
- for(l=0;l<(N*N);l++) {
-  C[l]=C[l]*result;
- }
+
+	#pragma omp parallel for shared(C,N)
+	 for(l=0;l<(N*N);l++) {
+	  C[l]=C[l]*result;
+	 }
 
  //VERIFICA PUNTO B
 //	check=check&&(C[0])==9216;
