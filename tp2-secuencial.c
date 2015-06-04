@@ -2,8 +2,7 @@
 #include<stdlib.h>
 
 //Dimension por defecto de las matrices
-	// int N=100;  <-- para testear, la cambiamos por 3
-int N=3;
+int N=3; //<-- para testear
 
 //Este metodo devuelve el max-min en result[0] y el promedio en result[1]
 void getValues(double *matriz, double *resultados) {
@@ -36,7 +35,7 @@ double dwalltime(){
 }
 
 int main(int argc,char*argv[]) {
- double *A,*B,*B2,*C,*D,*r1,*r2, *aux;
+ double *A,*B,*B2,*C,*D,*r1,*r2,*C2;
  int i,j,k;
  double timetick;
  int check=1;
@@ -183,27 +182,49 @@ int main(int argc,char*argv[]) {
 
  //Punto C
 
- aux=(double*)malloc(sizeof(double)*N);
- for(i=0;i<N;i++) {
+ struct celda {
+  double pos;
+  double value;
+ } valor, *column, aux;
 
+ C2=(double*)malloc(sizeof(double)*N*N);
+ column=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
+
+// C2=(double*)malloc(sizeof(double)*9);
+// column=(struct celda*)malloc((sizeof(int)+sizeof(double))*3);
+
+
+ for(i=0;i<N;i++) {
+  
+  for(k=0;k<N;k++) {
+   valor.pos=k;
+   valor.value=C[i+N*k];
+   column[k]=valor;
+  }
   for(j=1;j<N;j++) {
    for(k=0;k<N-j;k++) {
-    if(C[i+N*k]<C[i+N*(k+1)]) {
-     for(l=0;l<N-i;l++) {
-      aux[l]=C[i+l+N*k];
-     }
-     for(l=0;l<N-i;l++) {
-      C[i+l+N*k]=C[i+l+N*(k+1)];
-     }
-     for(l=0;l<N-i;l++) {
-      C[i+l+N*(k+1)]=aux[l];
-     }
+    if(column[k].value<column[k+1].value) {
+     aux=column[k];
+     column[k]=column[k+1];
+     column[k+1]=aux;
     }
+   }
+  }
+  for(j=0;j<N;j++){
+   valor=column[j];
+   for(k=0;k<N-i;k++){
+    C2[(j*N)+k]=C[((int)valor.pos*N)+i+k];
+   }
+  }  
+
+  for(j=0;j<N;j++){
+   for(k=0;k<N-i;k++){
+    C[(j*N)+k+i]=C2[(j*N)+k];
    }
   }
 
  }
- free(aux);
+ free(C2);
 
  //VERIFICA PUNTO C
 
