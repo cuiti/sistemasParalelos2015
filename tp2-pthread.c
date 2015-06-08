@@ -58,62 +58,74 @@ void* multiply_diag(void* slice) {
 }
 
 
-void* min_max_total(void* slice) {
+void* min_max_total_A(void* slice) {
   int s=(int)slice;   // retrive the slice info
   int from=(s*(N*N))/threads; // note that this 'slicing' works fine
   int to=((s+1)*(N*N))/threads; // even if SIZE is not divisible by num_thrd
   int i;
-  double local_min_A=999999;
-  double local_max_A=0;
-  double local_total_A=0;
-  double local_min_B=999999;
-  double local_max_B=0;
-  double local_total_B=0;
+  double local_min=999999;
+  double local_max=0;
+  double local_total=0;
 
   printf("Soy un thread!!");
  
   for (i=from; i<to; i++){  
-    if(A[i]<local_min_A){
-      local_min_A=A[i];
+    if(A[i]<local_min){
+      local_min=A[i];
     }
-    if(A[i]>local_max_A){
-      local_max_A=A[i];
+    if(A[i]>local_max){
+      local_max=A[i];
     }
   }
   pthread_mutex_lock(&seccion_critica_minA); 
-  if(local_min_A<minA) {
-    minA=local_min_A;
+  if(local_min<minA) {
+    minA=local_min;
   }
   pthread_mutex_unlock(&seccion_critica_minA);
   pthread_mutex_lock(&seccion_critica_maxA); 
-  if(local_max_A>maxA) {
-    maxA=local_max_A;
+  if(local_max>maxA) {
+    maxA=local_max;
   }
   pthread_mutex_unlock(&seccion_critica_maxA);
   pthread_mutex_lock(&seccion_critica_totalA); 
-  totalA+=local_total_A;
+  totalA+=local_total;
   pthread_mutex_unlock(&seccion_critica_totalA);
 
+  pthread_exit(0);
+}
+
+
+void* min_max_total_B(void* slice) {
+  int s=(int)slice;   // retrive the slice info
+  int from=(s*(N*N))/threads; // note that this 'slicing' works fine
+  int to=((s+1)*(N*N))/threads; // even if SIZE is not divisible by num_thrd
+  int i;
+  double local_min=999999;
+  double local_max=0;
+  double local_total=0;
+
+  printf("Soy un thread!!");
+
   for (i=from; i<to; i++){  
-    if(B[i]<local_min_B){
-      local_min_B=B[i];
+    if(B[i]<local_min){
+      local_min=B[i];
     }
-    if(B[i]>local_max_B){
-      local_max_B=B[i];
+    if(B[i]>local_max){
+      local_max=B[i];
     }
   }
   pthread_mutex_lock(&seccion_critica_minB); 
-  if(local_min_B<minB) {
-    minB=local_min_B;
+  if(local_min<minB) {
+    minB=local_min;
   }
   pthread_mutex_unlock(&seccion_critica_minB);
   pthread_mutex_lock(&seccion_critica_maxB); 
-  if(local_max_B>maxB) {
-    maxB=local_max_B;
+  if(local_max>maxB) {
+    maxB=local_max;
   }
   pthread_mutex_unlock(&seccion_critica_maxB);
   pthread_mutex_lock(&seccion_critica_totalB); 
-  totalB+=local_total_B;
+  totalB+=local_total;
   pthread_mutex_unlock(&seccion_critica_totalB);
 
   pthread_exit(0);
@@ -146,7 +158,7 @@ double dwalltime(){
 }
 
 int main(int argc,char*argv[]) {
- double *aux;
+ double *C2;
  int i,j,k;
  double timetick;
  int check=1;
@@ -262,7 +274,14 @@ int main(int argc,char*argv[]) {
 
  for(i=0; i<threads; i++){
    param[i]=i;
-   pthread_create (&thread[i], NULL, min_max_total, (void*)param[i]);
+   pthread_create (&thread[i], NULL, min_max_total_A, (void*)param[i]);
+ }
+ for(i=0; i<threads; i++) { 
+   pthread_join(thread[i], NULL);
+ }
+  for(i=0; i<threads; i++){
+   param[i]=i;
+   pthread_create (&thread[i], NULL, min_max_total_B, (void*)param[i]);
  }
  for(i=0; i<threads; i++) { 
    pthread_join(thread[i], NULL);
@@ -302,27 +321,49 @@ int main(int argc,char*argv[]) {
 
  //Punto C
 
- aux=(double*)malloc(sizeof(double)*N);
- for(i=0;i<N;i++) {
+ struct celda {
+  double pos;
+  double value;
+ } valor, *column, aux;
 
+ C2=(double*)malloc(sizeof(double)*N*N);
+ column=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
+
+// C2=(double*)malloc(sizeof(double)*9);
+// column=(struct celda*)malloc((sizeof(int)+sizeof(double))*3);
+
+
+ for(i=0;i<N;i++) {
+  
+  for(k=0;k<N;k++) {
+   valor.pos=k;
+   valor.value=C[i+N*k];
+   column[k]=valor;
+  }
   for(j=1;j<N;j++) {
    for(k=0;k<N-j;k++) {
-    if(C[i+N*k]<C[i+N*(k+1)]) {
-     for(l=0;l<N-i;l++) {
-      aux[l]=C[i+l+N*k];
-     }
-     for(l=0;l<N-i;l++) {
-      C[i+l+N*k]=C[i+l+N*(k+1)];
-     }
-     for(l=0;l<N-i;l++) {
-      C[i+l+N*(k+1)]=aux[l];
-     }
+    if(column[k].value<column[k+1].value) {
+     aux=column[k];
+     column[k]=column[k+1];
+     column[k+1]=aux;
     }
+   }
+  }
+  for(j=0;j<N;j++){
+   valor=column[j];
+   for(k=0;k<N-i;k++){
+    C2[(j*N)+k]=C[((int)valor.pos*N)+i+k];
+   }
+  }  
+
+  for(j=0;j<N;j++){
+   for(k=0;k<N-i;k++){
+    C[(j*N)+k+i]=C2[(j*N)+k];
    }
   }
 
  }
- free(aux);
+ free(C2);
 
  //VERIFICA PUNTO C
 
