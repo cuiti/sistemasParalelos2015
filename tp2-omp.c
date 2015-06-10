@@ -3,8 +3,8 @@
 #include<omp.h>
 
 //Dimension por defecto de las matrices
-	// int N=100;  <-- para testear, la cambiamos por 3
-int N=3;
+	 int N=100;  
+//int N=3;   <-- para testear, la cambiamos por 3
 
 //Este metodo devuelve el max-min en result[0] y el promedio en result[1]  				
 void getValues(double *matriz, double *resultados) {
@@ -49,7 +49,7 @@ int main(int argc,char*argv[]) {
   int numThreads=4;
   omp_set_num_threads(numThreads);
 
- double *A,*B,*B2,*C,*D,*r1,*r2, *aux;
+ double *A,*B,*B2,*C,*D,*r1,*r2, *aux, *C2;
  int i,j,k;
  double timetick;
  int check=1;
@@ -70,11 +70,11 @@ int main(int argc,char*argv[]) {
     r1=(double*)malloc(sizeof(double)*2);
     r2=(double*)malloc(sizeof(double)*2);
 
-//    A=(double*)malloc(sizeof(double)*9);
-//    B=(double*)malloc(sizeof(double)*9);
-//    C=(double*)malloc(sizeof(double)*9);
-//    B2=(double*)malloc(sizeof(double)*9);
-//    D=(double*)malloc(sizeof(double)*3);
+    //A=(double*)malloc(sizeof(double)*9);
+    //B=(double*)malloc(sizeof(double)*9);
+   // C=(double*)malloc(sizeof(double)*9);
+    //B2=(double*)malloc(sizeof(double)*9);
+   // D=(double*)malloc(sizeof(double)*3);
 	
 	//Inicializa las matrices A y B en 1, el resultado sera una matriz con todos sus valores en N
 	  for(i=0;i<N;i++){
@@ -135,28 +135,13 @@ int main(int argc,char*argv[]) {
 
   free(B2); 
 
- //VERIFICA PUNTO A 	
-			
-//	check=check&&(C[0])==60;
-//	check=check&&(C[1])==108;
-//	check=check&&(C[2])==57;
-//	check=check&&(C[3])==180;
-//	check=check&&(C[4])==152;
-//	check=check&&(C[5])==114;
-//	check=check&&(C[6])==172;
-//	check=check&&(C[7])==194;
-//	check=check&&(C[8])==126;
-
-//	printf("Matriz A.B.C resultante del punto 1:\n");
+ //VERIFICACION
+ //	printf("\n");
+ //	printf("Matriz resultante del punto 3:\n");
 //	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
 //	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
 //	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
 	
-//  if(check){
-//   printf("Multiplicacion de matrices A.B.C resultado correcto\n");
-//  }else{
-//   printf("Multiplicacion de matrices A.B.C resultado erroneo\n");
-//  }
 
  //Punto B
 
@@ -172,24 +157,9 @@ int main(int argc,char*argv[]) {
 	  C[l]=C[l]*result;
 	 }
 
- //VERIFICA PUNTO B
-//	check=check&&(C[0])==9216;
-//	check=check&&(C[1])==41472;
-//	check=check&&(C[2])==8755.2;
-//	check=check&&(C[3])==27648;
-//	check=check&&(C[4])==58368;
-//	check=check&&(C[5])==17510.4;
-//	check=check&&(C[6])==26419.2;
-//	check=check&&(C[7])==74496;
-//	check=check&&(C[8])==19353.6;
-//	
-//   if(check){
-//     printf("Etapa 2 resultado correcto\n");
-//    }else{
-//     printf("Etapa 2 resultado erroneo\n");
-//    }
-// 	printf("\n");
-// 	printf("Matriz resultante del punto 2:\n");
+ //VERIFICACION
+ //	printf("\n");
+ //	printf("Matriz resultante del punto 3:\n");
 //	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
 //	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
 //	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
@@ -200,48 +170,54 @@ int main(int argc,char*argv[]) {
 
  //Punto C
 
- aux=(double*)malloc(sizeof(double)*N);
+ struct celda {
+  double pos;
+  double value;
+ } valor, *column, auxCelda;
+
+ C2=(double*)malloc(sizeof(double)*N*N);
+ column=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
+
+// C2=(double*)malloc(sizeof(double)*9);
+// column=(struct celda*)malloc((sizeof(int)+sizeof(double))*3);
+
+
  for(i=0;i<N;i++) {
+  
+  for(k=0;k<N;k++) {
+   valor.pos=k;
+   valor.value=C[i+N*k];
+   column[k]=valor;
+  }
 
   for(j=1;j<N;j++) {
    for(k=0;k<N-j;k++) {
-    if(C[i+N*k]<C[i+N*(k+1)]) {
-     for(l=0;l<N-i;l++) {
-      aux[l]=C[i+l+N*k];
-     }
-     for(l=0;l<N-i;l++) {
-      C[i+l+N*k]=C[i+l+N*(k+1)];
-     }
-     for(l=0;l<N-i;l++) {
-      C[i+l+N*(k+1)]=aux[l];
-     }
+    if(column[k].value<column[k+1].value) {
+     auxCelda=column[k];
+     column[k]=column[k+1];
+     column[k+1]=auxCelda;
     }
+   }
+  }
+  for(j=0;j<N;j++){
+   valor=column[j];
+   for(k=0;k<N-i;k++){
+    C2[(j*N)+k]=C[((int)valor.pos*N)+i+k];
+   }
+  }  
+
+  for(j=0;j<N;j++){
+   for(k=0;k<N-i;k++){
+    C[(j*N)+k+i]=C2[(j*N)+k];
    }
   }
 
  }
- free(aux);
+ free(C2);
 
- //VERIFICA PUNTO C
-
-	//check=check&&(C[0])==27648;
-	//check=check&&(C[1])==74496;
-	//check=check&&(C[2])==19353.6;
-	//check=check&&(C[3])==26419.2;
-	//check=check&&(C[4])==58368;
-	//check=check&&(C[5])==17510.4;
-	//check=check&&(C[6])==9216;
-	//check=check&&(C[7])==41472;
-	//check=check&&(C[8])==8755.2;
-	
-    //if(check){
-     //printf("Etapa 3 resultado correcto\n");
-    //}else{
-     //printf("Etapa 3 resultado erroneo\n");
-    //}
-
-// 	printf("\n");
-// 	printf("Matriz resultante del punto 3:\n");
+ //VERIFICACION
+ //	printf("\n");
+ //	printf("Matriz resultante del punto 3:\n");
 //	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
 //	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
 //	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);	
