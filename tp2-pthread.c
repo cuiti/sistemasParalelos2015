@@ -3,8 +3,7 @@
 #include<pthread.h>
 
 //Dimension por defecto de las matrices
-	// int N=3;  <-- para testear la cambiamos por 3
-int N=3;
+int N=3;  //<-- para testear la cambiamos por 3
 int threads=4;
 double *A,*B,*B2,*C,*D, result;
 double minA=9999999;
@@ -20,14 +19,17 @@ pthread_mutex_t seccion_critica_totalB;
 pthread_mutex_t seccion_critica_minA; 
 pthread_mutex_t seccion_critica_minB;
 
+struct celda {
+ double pos;
+ double value;
+} valor, *column, aux, *merge, *merge2;
+
 
 void* multiply(void* slice) {
   int s=(int)slice;   // retrive the slice info
   int from=(s*N)/threads; // note that this 'slicing' works fine
   int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
   int i,j,k;
-
-  printf("Soy un thread!!");
  
   for (i=from; i<to; i++) {  
     for (j=0; j<N; j++) {
@@ -41,13 +43,68 @@ void* multiply(void* slice) {
 }
 
 
+void* sort(void* slice) {
+  int s=(int)slice;   // retrive the slice info
+  int from=(s*N)/threads; // note that this 'slicing' works fine
+  int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
+  int j,k;
+  struct celda aux;
+ 
+  for(j=1; j<to; j++) {
+   for(k=from; k<to-j; k++) {
+    if(column[k].value<column[k+1].value) {
+     aux=column[k];
+     column[k]=column[k+1];
+     column[k+1]=aux;
+    }
+   }
+  }
+  pthread_exit(0);
+}
+
+
+void* initial_merge(void* slice) {
+  int s=(int)slice;   // retrive the slice info
+  int i=(s*N)/2;
+  int n2=((s+1)*N)/2; // even if SIZE is not divisible by num_thrd
+  int j=n2/2;
+  int n1=n2/2;
+  int k=0;
+
+  merge2=(struct celda*)malloc((sizeof(double)+sizeof(double))*N/2);
+ 
+  while(i<n1 && j<n2) {
+   if (column[i].value<=column[j].value){
+    merge2[k]=column[i];
+    i++;
+   }else{
+    merge2[k]=column[j];
+    j++;
+   }
+   k++;
+  }
+  while(i<n1) {
+   merge2[k]=column[i];
+   i++;
+   k++;
+  }
+  while(j<n2) {
+   merge2[k]=column[j];
+   j++;
+   k++;
+  }
+  for(i=0;i<N/2;i++) {
+   column[i+((s*N)/2)]=merge2[i];
+  }
+  pthread_exit(0);
+}
+
+
 void* multiply_diag(void* slice) {
   int s=(int)slice;   // retrive the slice info
   int from=(s*N)/threads; // note that this 'slicing' works fine
   int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
   int i,j;
-
-  printf("Soy un thread!!");
  
   for(i=from;i<to;i++){
    for(j=0;j<N;j++){
@@ -66,8 +123,6 @@ void* min_max_total_A(void* slice) {
   double local_min=999999;
   double local_max=0;
   double local_total=0;
-
-  printf("Soy un thread!!");
  
   for (i=from; i<to; i++){  
     if(A[i]<local_min){
@@ -104,8 +159,6 @@ void* min_max_total_B(void* slice) {
   double local_max=0;
   double local_total=0;
 
-  printf("Soy un thread!!");
-
   for (i=from; i<to; i++){  
     if(B[i]<local_min){
       local_min=B[i];
@@ -137,8 +190,6 @@ void* multiply_ident(void* slice) {
   int from=(s*N)/threads; // note that this 'slicing' works fine
   int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
   int i,j;
-
-  printf("Soy un thread!!");
  
   for(i=from;i<to;i++){
    C[i]=C[i]*result;
@@ -159,7 +210,7 @@ double dwalltime(){
 
 int main(int argc,char*argv[]) {
  double *C2;
- int i,j,k;
+ int i,j,k, l;
  double timetick;
  int check=1;
 
@@ -270,8 +321,6 @@ int main(int argc,char*argv[]) {
 
  //Punto B
 
- int l;
-
  for(i=0; i<threads; i++){
    param[i]=i;
    pthread_create (&thread[i], NULL, min_max_total_A, (void*)param[i]);
@@ -321,13 +370,9 @@ int main(int argc,char*argv[]) {
 
  //Punto C
 
- struct celda {
-  double pos;
-  double value;
- } valor, *column, aux;
-
  C2=(double*)malloc(sizeof(double)*N*N);
  column=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
+ merge=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
 
 // C2=(double*)malloc(sizeof(double)*9);
 // column=(struct celda*)malloc((sizeof(int)+sizeof(double))*3);
@@ -340,17 +385,47 @@ int main(int argc,char*argv[]) {
    valor.value=C[i+N*k];
    column[k]=valor;
   }
-  for(j=1;j<N;j++) {
-   for(k=0;k<N-j;k++) {
-    if(column[k].value<column[k+1].value) {
-     aux=column[k];
-     column[k]=column[k+1];
-     column[k+1]=aux;
-    }
-   }
+  for(k=0; k<threads; k++){
+   param[k]=k;
+   pthread_create (&thread[k], NULL, sort, (void*)param[k]);
   }
+  for(k=0; k<threads; k++) { 
+    pthread_join(thread[k], NULL);
+  }
+  for(k=0; k<2; k++){
+   param[k]=k;
+   pthread_create (&thread[k], NULL, initial_merge, (void*)param[k]);
+  }
+  for(k=0; k<2; k++) { 
+    pthread_join(thread[k], NULL);
+  }
+
+  j=0;
+  k=N/2;
+  l=0;
+  while(j<N/2 && k<N) {
+   if (column[j].value<=column[k].value){
+    merge[l]=column[j];
+    j++;
+   }else{
+    merge[l]=column[k];
+    k++;
+   }
+   l++;
+  }
+  while(j<N/2) {
+   merge[l]=column[j];
+   j++;
+   l++;
+  }
+  while(k<N) {
+   merge[l]=column[k];
+   k++;
+   l++;
+  }
+
   for(j=0;j<N;j++){
-   valor=column[j];
+   valor=merge[j];
    for(k=0;k<N-i;k++){
     C2[(j*N)+k]=C[((int)valor.pos*N)+i+k];
    }
