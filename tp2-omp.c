@@ -6,6 +6,16 @@
 	 int N=100;  
 //int N=3;   <-- para testear, la cambiamos por 3
 
+
+  //Asignamos un numero fijo de threads, también podrían llegar por parámetro
+  int numThreads=4;
+
+ struct celda {
+  double pos;
+  double value;
+ } valor, *column, auxCelda, aux, *merge, *merge2;
+
+
 //Este metodo devuelve el max-min en result[0] y el promedio en result[1]  				
 void getValues(double *matriz, double *resultados) {
 	 int i=0;
@@ -33,6 +43,65 @@ void getValues(double *matriz, double *resultados) {
 
 }
 
+
+void* sort(int slice) {
+  int s=(int)slice;   // retrive the slice info
+  int from=(s*N)/numThreads; // note that this 'slicing' works fine
+  int to=((s+1)*N)/numThreads; // even if SIZE is not divisible by num_thrd
+  int j,k;
+  struct celda aux;
+
+   for(j=1;j<N;j++) {
+   for(k=from;k<to-j;k++) {
+    if(column[k].value<column[k+1].value) {
+     auxCelda=column[k];
+     column[k]=column[k+1];
+     column[k+1]=aux;
+    }
+   }
+  }
+}
+
+
+void* initial_merge(int slice) {
+  int s=(int)slice;   // retrive the slice info
+  int i=(s*N)/2;
+  int n2=((s+1)*N)/2; // even if SIZE is not divisible by num_thrd
+  int j=n2/2;
+  int n1=n2/2;
+  int k=0;
+
+  merge2=(struct celda*)malloc((sizeof(double)+sizeof(double))*N/2);
+ 
+  while(i<n1 && j<n2) {
+   if (column[i].value<=column[j].value){
+    merge2[k]=column[i];
+    i++;
+   }else{
+    merge2[k]=column[j];
+    j++;
+   }
+   k++;
+  }
+  while(i<n1) {
+   merge2[k]=column[i];
+   i++;
+   k++;
+  }
+  while(j<n2) {
+   merge2[k]=column[j];
+   j++;
+   k++;
+  }
+  for(i=0;i<N/2;i++) {
+   column[i+((s*N)/2)]=merge2[i];
+  }
+  
+
+}
+
+
+
 //Para calcular tiempo
 double dwalltime(){
         double sec;
@@ -45,14 +114,14 @@ double dwalltime(){
 
 int main(int argc,char*argv[]) {
 
-  //Asignamos un numero fijo de threads, también podrían llegar por parámetro
-  int numThreads=4;
+
   omp_set_num_threads(numThreads);
 
  double *A,*B,*B2,*C,*D,*r1,*r2, *aux, *C2;
  int i,j,k;
  double timetick;
  int check=1;
+ int param[numThreads];
 
  if ((argc != 2) || ((N = atoi(argv[1])) <= 0) )
   {
@@ -170,35 +239,57 @@ int main(int argc,char*argv[]) {
 
  //Punto C
 
- struct celda {
-  double pos;
-  double value;
- } valor, *column, auxCelda;
+
 
  C2=(double*)malloc(sizeof(double)*N*N);
  column=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
-
-// C2=(double*)malloc(sizeof(double)*9);
-// column=(struct celda*)malloc((sizeof(int)+sizeof(double))*3);
+ merge=(struct celda*)malloc((sizeof(double)+sizeof(double))*N);
 
 
  for(i=0;i<N;i++) {
   
-  for(k=0;k<N;k++) {
-   valor.pos=k;
-   valor.value=C[i+N*k];
-   column[k]=valor;
+	for(k=0;k<N;k++) {
+		valor.pos=k;
+		valor.value=C[i+N*k];
+		column[k]=valor;
+	}
+
+	#pragma omp parallel for 
+	for(k=0; k<numThreads; k++){
+		//param[k]=k;
+		sort( k );
+	}
+
+	#pragma omp parallel for 
+  for(k=0; k<2; k++){
+   initial_merge(k);
   }
 
-  for(j=1;j<N;j++) {
-   for(k=0;k<N-j;k++) {
-    if(column[k].value<column[k+1].value) {
-     auxCelda=column[k];
-     column[k]=column[k+1];
-     column[k+1]=auxCelda;
-    }
+	j=0;
+  k=N/2;
+  l=0;
+  while(j<N/2 && k<N) {
+   if (column[j].value<=column[k].value){
+    merge[l]=column[j];
+    j++;
+   }else{
+    merge[l]=column[k];
+    k++;
    }
+   l++;
   }
+  while(j<N/2) {
+   merge[l]=column[j];
+   j++;
+   l++;
+  }
+  while(k<N) {
+   merge[l]=column[k];
+   k++;
+   l++;
+  }
+
+	#pragma omp parallel for private(k) shared (valor,N,i,C2,C)
   for(j=0;j<N;j++){
    valor=column[j];
    for(k=0;k<N-i;k++){
@@ -206,6 +297,7 @@ int main(int argc,char*argv[]) {
    }
   }  
 
+	#pragma omp parallel for private(k) shared (N,i,C2,C)
   for(j=0;j<N;j++){
    for(k=0;k<N-i;k++){
     C[(j*N)+k+i]=C2[(j*N)+k];
