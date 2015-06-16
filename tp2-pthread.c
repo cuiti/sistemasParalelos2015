@@ -5,7 +5,8 @@
 //Dimension por defecto de las matrices
 int N=3;  //<-- para testear la cambiamos por 3
 int threads=4;
-double *A,*B,*B2,*C,*D, result;
+int i;
+double *A,*B,*B2,*C,*C2,*D,result;
 double minA=9999999;
 double maxA=0;
 double minB=9999999;
@@ -131,6 +132,7 @@ void* min_max_total_A(void* slice) {
     if(A[i]>local_max){
       local_max=A[i];
     }
+    local_total+=A[i];
   }
   pthread_mutex_lock(&seccion_critica_minA); 
   if(local_min<minA) {
@@ -166,6 +168,7 @@ void* min_max_total_B(void* slice) {
     if(B[i]>local_max){
       local_max=B[i];
     }
+    local_total+=B[i];
   }
   pthread_mutex_lock(&seccion_critica_minB); 
   if(local_min<minB) {
@@ -198,6 +201,38 @@ void* multiply_ident(void* slice) {
 }
 
 
+void* copy_to_aux(void* slice) {
+  int s=(int)slice;   // retrive the slice info
+  int from=(s*N)/threads; // note that this 'slicing' works fine
+  int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
+  int j,k;
+  struct celda valor;
+
+  for(j=from;j<to;j++){
+   valor=merge[j];
+   for(k=0;k<N-i;k++){
+    C2[(j*N)+k]=C[((int)valor.pos*N)+i+k];
+   }
+  }
+  pthread_exit(0);
+}
+
+
+void* copy_to_c(void* slice) {
+  int s=(int)slice;   // retrive the slice info
+  int from=(s*N)/threads; // note that this 'slicing' works fine
+  int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
+  int j,k;
+
+  for(j=from;j<to;j++){
+   for(k=0;k<N-i;k++){
+    C[(j*N)+k+i]=C2[(j*N)+k];
+   }
+  }  
+  pthread_exit(0);
+}
+
+
 //Para calcular tiempo
 double dwalltime(){
         double sec;
@@ -209,8 +244,7 @@ double dwalltime(){
 }
 
 int main(int argc,char*argv[]) {
- double *C2;
- int i,j,k, l;
+ int j,k,l;
  double timetick;
  int check=1;
 
@@ -424,17 +458,20 @@ int main(int argc,char*argv[]) {
    l++;
   }
 
-  for(j=0;j<N;j++){
-   valor=merge[j];
-   for(k=0;k<N-i;k++){
-    C2[(j*N)+k]=C[((int)valor.pos*N)+i+k];
-   }
+  for(k=0; k<threads; k++){
+   param[k]=k;
+   pthread_create (&thread[k], NULL, copy_to_aux, (void*)param[k]);
+  }
+  for(k=0; k<threads; k++) { 
+    pthread_join(thread[k], NULL);
   }  
 
-  for(j=0;j<N;j++){
-   for(k=0;k<N-i;k++){
-    C[(j*N)+k+i]=C2[(j*N)+k];
-   }
+  for(k=0; k<threads; k++){
+   param[k]=k;
+   pthread_create (&thread[k], NULL, copy_to_c, (void*)param[k]);
+  }
+  for(k=0; k<threads; k++) { 
+    pthread_join(thread[k], NULL);
   }
 
  }
