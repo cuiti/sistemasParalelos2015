@@ -190,8 +190,8 @@ void* min_max_total_B(void* slice) {
 
 void* multiply_ident(void* slice) {
   int s=(int)slice;   // retrive the slice info
-  int from=(s*N)/threads; // note that this 'slicing' works fine
-  int to=((s+1)*N)/threads; // even if SIZE is not divisible by num_thrd
+  int from=(s*(N*N))/threads; // note that this 'slicing' works fine
+  int to=((s+1)*(N*N))/threads; // even if SIZE is not divisible by num_thrd
   int i,j;
  
   for(i=from;i<to;i++){
