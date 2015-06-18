@@ -139,14 +139,18 @@ int main(int argc,char*argv[]) {
     r1=(double*)malloc(sizeof(double)*2);
     r2=(double*)malloc(sizeof(double)*2);
 
-    //A=(double*)malloc(sizeof(double)*9);
-    //B=(double*)malloc(sizeof(double)*9);
-   // C=(double*)malloc(sizeof(double)*9);
-    //B2=(double*)malloc(sizeof(double)*9);
-   // D=(double*)malloc(sizeof(double)*3);
+    /*
+	A=(double*)malloc(sizeof(double)*9);
+    B=(double*)malloc(sizeof(double)*9);
+    C=(double*)malloc(sizeof(double)*9);
+    B2=(double*)malloc(sizeof(double)*9);
+    D=(double*)malloc(sizeof(double)*3);
+	*/
 	
-	//Inicializa las matrices A y B en 1, el resultado sera una matriz con todos sus valores en N
-	  for(i=0;i<N;i++){
+	//Inicializa las matrices A y B en 1, el resultado sera una matriz con todos sus valores en N 
+	// private(j) ?
+	#pragma omp parallel for shared (A,B,D)
+	for(i=0;i<N;i++){
 	   for(j=0;j<N;j++){
 		A[i*N+j]=1;
 		B[i+j*N]=1;
@@ -155,31 +159,31 @@ int main(int argc,char*argv[]) {
 	  }   
 
 
-//Inicializa matrices con los valores de prueba
-//	A[0]=1;
-//	A[1]=2;
-//	A[2]=6;
-//	A[3]=5;
-//	A[4]=9;
-//	A[5]=3;
-//	A[6]=4;
-//	A[7]=8;
-//	A[8]=7;
+/*Inicializa matrices con los valores de prueba
+	A[0]=1;
+	A[1]=2;
+	A[2]=6;
+	A[3]=5;
+	A[4]=9;
+	A[5]=3;
+	A[6]=4;
+	A[7]=8;
+	A[8]=7;
 	
-//	B[0]=3;
-//	B[1]=3;
-//	B[2]=1;
-//	B[3]=2;
-//	B[4]=5;
-//	B[5]=7;
-//	B[6]=1;
-//	B[7]=3;
-//	B[8]=2;
+	B[0]=3;
+	B[1]=3;
+	B[2]=1;
+	B[3]=2;
+	B[4]=5;
+	B[5]=7;
+	B[6]=1;
+	B[7]=3;
+	B[8]=2;
 
-//	D[0]=4;
-//	D[1]=2;
-//	D[2]=3;
-	
+	D[0]=4;
+	D[1]=2;
+	D[2]=3;
+*/	
 	
  //Punto A
 
@@ -204,13 +208,13 @@ int main(int argc,char*argv[]) {
 
   free(B2); 
 
- //VERIFICACION
- //	printf("\n");
- //	printf("Matriz resultante del punto 3:\n");
-//	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
-//	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
-//	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
-	
+ /*VERIFICACION
+ 	printf("\n");
+ 	printf("Matriz resultante del punto A:\n");
+	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
+	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
+	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
+*/
 
  //Punto B
 
@@ -221,17 +225,18 @@ int main(int argc,char*argv[]) {
  getValues(B,r2);
  result=((r1[0]*r1[0])/r1[1])*((r2[0]*r2[0])/r2[1]);
 
-	#pragma omp parallel for shared(C,N)
+	#pragma omp parallel for shared(C)
 	 for(l=0;l<(N*N);l++) {
 	  C[l]=C[l]*result;
 	 }
 
- //VERIFICACION
- //	printf("\n");
- //	printf("Matriz resultante del punto 3:\n");
-//	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
-//	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
-//	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
+ /*VERIFICACION
+ 	printf("\n");
+ 	printf("Matriz resultante del punto B:\n");
+	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
+	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
+	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
+*/
  
  
  free(r1);
@@ -248,6 +253,7 @@ int main(int argc,char*argv[]) {
 
  for(i=0;i<N;i++) {
   
+	#pragma omp parallel for shared (valor,column)
 	for(k=0;k<N;k++) {
 		valor.pos=k;
 		valor.value=C[i+N*k];
@@ -266,18 +272,19 @@ int main(int argc,char*argv[]) {
   }
 
 	j=0;
-  k=N/2;
-  l=0;
-  while(j<N/2 && k<N) {
-   if (column[j].value<=column[k].value){
-    merge[l]=column[j];
-    j++;
-   }else{
-    merge[l]=column[k];
-    k++;
-   }
-   l++;
-  }
+	k=N/2;
+	l=0;
+
+	while(j<N/2 && k<N) {
+		if (column[j].value<=column[k].value){
+			merge[l]=column[j];
+			j++;
+		}else{
+			merge[l]=column[k];
+			k++;
+			}
+		l++;
+	}
   while(j<N/2) {
    merge[l]=column[j];
    j++;
@@ -307,12 +314,13 @@ int main(int argc,char*argv[]) {
  }
  free(C2);
 
- //VERIFICACION
- //	printf("\n");
- //	printf("Matriz resultante del punto 3:\n");
-//	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
-//	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
-//	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);	
+ /*VERIFICACION
+ 	printf("\n");
+ 	printf("Matriz resultante del punto C:\n");
+	printf(" %f",C[0]);printf("  %f",C[1]);printf("  %f\n",C[2]);
+	printf(" %f",C[3]);printf("  %f",C[4]);printf("  %f\n",C[5]);
+	printf(" %f",C[6]);printf("  %f",C[7]);printf("  %f\n",C[8]);
+*/
 	
  printf("Tiempo en segundos %f\n", dwalltime() - timetick);
 
